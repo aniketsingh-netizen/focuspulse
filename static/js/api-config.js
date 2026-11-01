@@ -1,0 +1,1 @@
+window.FOCUSPULSE_API_BASE = "";

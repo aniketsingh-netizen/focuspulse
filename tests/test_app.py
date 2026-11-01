@@ -28,8 +28,17 @@ def test_dashboard_and_static_script_are_served(client):
     assert "jspdf" in page.text
     assert "mask-display" not in page.text
     assert "face-mesh-canvas" not in page.text
+    assert "./static/js/dashboard.js" in page.text
+    assert "./static/js/api-config.js" in page.text
     assert script.status_code == 200
     assert "getUserMedia" in script.text
+
+
+def test_static_api_config_is_served(client):
+    response = client.get("/static/js/api-config.js")
+
+    assert response.status_code == 200
+    assert 'window.FOCUSPULSE_API_BASE = "";' in response.text
 
 
 def test_decode_frame_accepts_jpeg_and_data_url():

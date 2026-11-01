@@ -333,8 +333,24 @@
   }
 
   function socketUrl() {
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    return `${protocol}//${window.location.host}/ws/analyze`;
+    const configuredBase = window.FOCUSPULSE_API_BASE;
+    if (!configuredBase && window.location.hostname.endsWith(".github.io")) {
+      throw new Error("The dashboard is deployed, but its analysis API is not configured. Deploy the FastAPI service and set the repository Actions variable API_BASE_URL to its HTTPS URL.");
+    }
+    let api;
+    try {
+      api = new URL(configuredBase || window.location.origin);
+    } catch {
+      throw new Error("The configured analysis API URL is invalid.");
+    }
+    if (api.protocol !== "https:" && api.hostname !== "localhost" && api.hostname !== "127.0.0.1") {
+      throw new Error("The analysis API must use HTTPS for a secure camera session.");
+    }
+    api.protocol = api.protocol === "https:" ? "wss:" : "ws:";
+    api.pathname = `${api.pathname.replace(/\/+$/, "")}/ws/analyze`;
+    api.search = "";
+    api.hash = "";
+    return api.toString();
   }
 
   async function startSession() {
@@ -350,6 +366,7 @@
     startButton.disabled = true;
     startButton.textContent = "Starting…";
     try {
+      const wsUrl = socketUrl();
       getAudioContext().catch((error) => console.warn("Audio alerts are unavailable.", error));
       if (!navigator.mediaDevices?.getUserMedia) {
         throw new Error("Camera access requires HTTPS or localhost in a supported browser.");
@@ -360,7 +377,7 @@
       });
       video.srcObject = cameraStream;
       await video.play();
-      const sessionSocket = new WebSocket(socketUrl());
+      const sessionSocket = new WebSocket(wsUrl);
       socket = sessionSocket;
       sessionSocket.onopen = () => {
         if (socket !== sessionSocket) return;
