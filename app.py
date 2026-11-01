@@ -387,6 +387,11 @@ app = FastAPI(title="FocusPulse AI", version="1.0.0", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=_BASE_DIR / "static"), name="static")
 
 
+@app.get("/health")
+async def health() -> dict[str, str]:
+    return {"status": "ok", "service": "FocusPulse AI"}
+
+
 @app.get("/", response_class=HTMLResponse)
 async def dashboard() -> HTMLResponse:
     with open(_BASE_DIR / "templates" / "index.html", encoding="utf-8") as page:

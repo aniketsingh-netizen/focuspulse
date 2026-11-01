@@ -34,6 +34,13 @@ def test_dashboard_and_static_script_are_served(client):
     assert "getUserMedia" in script.text
 
 
+def test_health_endpoint_identifies_service(client):
+    response = client.get("/health")
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok", "service": "FocusPulse AI"}
+
+
 def test_static_api_config_is_served(client):
     response = client.get("/static/js/api-config.js")
 

@@ -8,6 +8,8 @@ on:
       - "app.py"
       - "static/**"
       - "templates/**"
+      - "scripts/**"
+      - "vercel.json"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -33,23 +35,8 @@ jobs:
       - name: Build static dashboard
         env:
           API_BASE_URL: ${{ vars.API_BASE_URL }}
-        run: |
-          mkdir -p site/static/js
-          cp templates/index.html site/index.html
-          cp static/js/dashboard.js site/static/js/dashboard.js
-          python - <<'PY'
-          import json
-          import os
-          from pathlib import Path
-
-          api_base_url = os.environ.get("API_BASE_URL", "").strip().rstrip("/")
-          Path("site/static/js/api-config.js").write_text(
-              "window.FOCUSPULSE_API_BASE = "
-              + json.dumps(api_base_url)
-              + ";\n",
-              encoding="utf-8",
-          )
-          PY
+          OUTPUT_DIR: site
+        run: python scripts/build_static.py
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
